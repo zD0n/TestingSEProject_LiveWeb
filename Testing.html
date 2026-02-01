@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    video, img {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 12px;
+    }
+    button {
+      margin: 8px;
+      padding: 10px 16px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<video id="video" autoplay playsinline></video>
+<img id="preview" style="display:none;" />
+
+<br>
+
+<button id="captureBtn">Take Photo</button>
+<button id="saveBtn" style="display:none;">Save</button>
+
+<canvas id="canvas" style="display:none;"></canvas>
+
+<script>
+const video = document.getElementById("video");
+const preview = document.getElementById("preview");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const captureBtn = document.getElementById("captureBtn");
+const saveBtn = document.getElementById("saveBtn");
+
+let isPhotoTaken = false;
+
+// Open camera
+navigator.mediaDevices.getUserMedia({
+  video: { facingMode: "environment" }
+}).then(stream => {
+  video.srcObject = stream;
+}).catch(err => {
+  console.error("Camera error:", err);
+});
+
+// Button click handler
+captureBtn.addEventListener("click", () => {
+  if (!isPhotoTaken) {
+    takePhoto();
+  } else {
+    resetCamera();
+  }
+});
+
+// Take photo
+function takePhoto() {
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0);
+
+  preview.src = canvas.toDataURL("image/jpeg", 0.9);
+  preview.style.display = "block";
+  video.style.display = "none";
+
+  captureBtn.textContent = "Reset";
+  saveBtn.style.display = "inline";
+
+  isPhotoTaken = true;
+}
+
+// Reset camera
+function resetCamera() {
+  preview.style.display = "none";
+  video.style.display = "block";
+
+  captureBtn.textContent = "Take Photo";
+  saveBtn.style.display = "none";
+
+  isPhotoTaken = false;
+}
+
+// Save photo
+function savePhoto() {
+  canvas.toBlob(blob => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "photo.jpg";
+    a.click();
+  }, "image/jpeg", 0.9);
+}
+
+saveBtn.addEventListener("click", savePhoto);
+</script>
+
+</body>
+</html>
